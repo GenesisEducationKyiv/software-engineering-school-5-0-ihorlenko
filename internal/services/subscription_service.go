@@ -25,7 +25,6 @@ func NewSubscriptionService(
 }
 
 func (s *SubscriptionService) CreateSubscription(email, city, frequency string) (*models.Subscription, error) {
-
 	user, err := s.userRepo.GetOrCreate(email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find or create user: %w", err)

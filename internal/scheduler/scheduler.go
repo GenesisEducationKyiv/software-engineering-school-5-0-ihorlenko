@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -69,7 +70,10 @@ func (s *WeatherScheduler) sendUpdates(frequency string) {
 	log.Printf("Found %d active subscriptions for %s updates", len(subscriptions), frequency)
 
 	for _, sub := range subscriptions {
-		weather, err := s.weatherService.GetWeather(sub.City)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		weather, err := s.weatherService.GetWeather(ctx, sub.City)
+		cancel()
+
 		if err != nil {
 			log.Printf("Failed to get weather for city %s: %v", sub.City, err)
 			continue

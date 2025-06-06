@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
 )
@@ -40,11 +42,25 @@ func NewWeatherService(cfg *config.Config) *WeatherService {
 	}
 }
 
-func (ws *WeatherService) GetWeather(city string) (*WeatherData, error) {
+func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*WeatherData, error) {
+	baseURL, err := url.Parse(ws.baseURL + "current.json")
+	if err != nil {
+		return nil, fmt.Errorf("invalid base URL: %w", err)
+	}
 
-	url := ws.baseURL + "current.json?key=" + ws.apiKey + "&q=" + city
+	params := url.Values{}
+	params.Add("key", ws.apiKey)
+	params.Add("q", city)
+	baseURL.RawQuery = params.Encode()
 
-	resp, err := http.Get(url)
+	finalURL := baseURL.String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, finalURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request to weather API: %w", err)
 	}

@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/ihorlenko/weather_notifier/internal/models"
 	"gorm.io/gorm"
 )
@@ -40,7 +42,7 @@ func (r *UserRepository) GetOrCreate(email string) (*models.User, error) {
 		return user, nil
 	}
 
-	if err != gorm.ErrRecordNotFound {
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
