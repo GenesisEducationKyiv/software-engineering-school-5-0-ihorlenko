@@ -35,7 +35,7 @@ func (h *WeatherHandler) GetWeather(c *gin.Context) {
 		return
 	}
 
-	weatherData, err := h.weatherService.GetWeather(city)
+	weatherData, err := h.weatherService.GetWeather(c.Request.Context(), city)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

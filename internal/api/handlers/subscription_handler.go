@@ -61,7 +61,7 @@ func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 		return
 	}
 
-	_, err := h.weatherService.GetWeather(req.City)
+	_, err := h.weatherService.GetWeather(c.Request.Context(), req.City)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid city or weather service unavailable"})
 		return

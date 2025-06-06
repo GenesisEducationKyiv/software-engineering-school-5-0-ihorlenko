@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -41,7 +42,7 @@ func NewWeatherService(cfg *config.Config) *WeatherService {
 	}
 }
 
-func (ws *WeatherService) GetWeather(city string) (*WeatherData, error) {
+func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*WeatherData, error) {
 	baseURL, err := url.Parse(ws.baseURL + "current.json")
 	if err != nil {
 		return nil, fmt.Errorf("invalid base URL: %w", err)
@@ -54,8 +55,12 @@ func (ws *WeatherService) GetWeather(city string) (*WeatherData, error) {
 
 	finalURL := baseURL.String()
 
-	//nolint:gosec // G107 false positive
-	resp, err := http.Get(finalURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, finalURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request to weather API: %w", err)
 	}
