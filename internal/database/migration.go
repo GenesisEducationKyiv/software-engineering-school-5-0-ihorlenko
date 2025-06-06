@@ -15,7 +15,8 @@ import (
 
 func RunMigrations(cfg *config.Config) error {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		cfg.DBConfig.User, cfg.DBConfig.Password, cfg.DBConfig.Host, cfg.DBConfig.Port, cfg.DBConfig.DBName, cfg.DBConfig.SSLMode)
+		cfg.DBConfig.User, cfg.DBConfig.Password, cfg.DBConfig.Host,
+		cfg.DBConfig.Port, cfg.DBConfig.DBName, cfg.DBConfig.SSLMode)
 
 	m, err := migrate.New("file://migrations", dsn)
 	if err != nil {

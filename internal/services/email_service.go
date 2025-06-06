@@ -97,7 +97,8 @@ func (s *EmailService) SendConfirmationEmail(email, city, token string) error {
             <p>Best regards,<br>Weather Notifier Team</p>
         </div>
         <div class="footer">
-            <p>&copy; 2025 Weather Notifier by <a href="https://github.com/ihorlenko" style="color: #5b86e5;">ihorlenko</a></p>
+            <p>&copy; 2025 Weather Notifier by `+
+		`<a href="https://github.com/ihorlenko" style="color: #5b86e5;">ihorlenko</a></p>
         </div>
     </div>
 </body>

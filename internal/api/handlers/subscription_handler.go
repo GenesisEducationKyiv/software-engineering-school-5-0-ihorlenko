@@ -109,7 +109,8 @@ func (h *SubscriptionHandler) Confirm(c *gin.Context) {
 		return
 	}
 
-	redirectURL := "/?message_type=success&message=" + url.QueryEscape("Your subscription has been successfully confirmed!")
+	message := "Your subscription has been successfully confirmed!"
+	redirectURL := "/?message_type=success&message=" + url.QueryEscape(message)
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
@@ -138,7 +139,8 @@ func (h *SubscriptionHandler) Unsubscribe(c *gin.Context) {
 		return
 	}
 
-	redirectURL := "/?message_type=success&message=" + url.QueryEscape("You have successfully unsubscribed from weather updates")
+	message := "You have successfully unsubscribed from weather updates"
+	redirectURL := "/?message_type=success&message=" + url.QueryEscape(message)
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
