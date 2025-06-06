@@ -1,0 +1,32 @@
+name: weather-notifier
+services:
+  main-app:
+    build: .
+    container_name: main-app
+    ports: 
+      - "8080:8080"
+    env_file:
+      - .env
+    networks:
+      - weather-network
+    depends_on:
+      - postgres
+  
+  postgres:
+    image: postgres:latest
+    container_name: weather-postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - weather-network
+
+volumes:
+  postgres-data:
+
+networks:
+  weather-network:
+    driver: bridge
