@@ -6,17 +6,16 @@ import (
 	"os/signal"
 	"syscall"
 
-	_ "github.com/ihorlenko/weather_notifier/docs"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-
 	"github.com/gin-gonic/gin"
+	_ "github.com/ihorlenko/weather_notifier/docs"
 	"github.com/ihorlenko/weather_notifier/internal/api/handlers"
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	"github.com/ihorlenko/weather_notifier/internal/database"
 	"github.com/ihorlenko/weather_notifier/internal/repositories"
 	"github.com/ihorlenko/weather_notifier/internal/scheduler"
 	"github.com/ihorlenko/weather_notifier/internal/services"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // @title           Weather Notifier API
@@ -25,7 +24,6 @@ import (
 // @host            localhost:8080
 // @BasePath        /api
 func main() {
-
 	cfg := config.LoadConfig()
 
 	if err := database.RunMigrations(cfg); err != nil {
