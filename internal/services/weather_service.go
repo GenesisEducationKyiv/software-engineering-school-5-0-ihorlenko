@@ -41,7 +41,6 @@ func NewWeatherService(cfg *config.Config) *WeatherService {
 }
 
 func (ws *WeatherService) GetWeather(city string) (*WeatherData, error) {
-
 	url := ws.baseURL + "current.json?key=" + ws.apiKey + "&q=" + city
 
 	resp, err := http.Get(url)
