@@ -8,6 +8,7 @@ linters:
     - bodyclose
     - nilerr
     - nilnil
+    - gocritic
 
     - revive
     - gocyclo
@@ -19,11 +20,22 @@ linters:
     - errorlint
     - errname
 
+    - usestdlibvars
+    - noctx
+    - contextcheck
+    - goconst
+
+    - whitespace
+    - godox
+    - lll
+
   settings:
     errcheck:
       check-type-assertions: true
       check-blank: false
-      exclude-functions:
+
+    lll:
+      line-length: 120
 
   exclusions:
     generated: lax
