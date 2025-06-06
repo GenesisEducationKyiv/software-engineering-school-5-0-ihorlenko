@@ -6,7 +6,9 @@ import (
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
+	// Initialize Postgres driver
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	// Initialize file source driver
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/ihorlenko/weather_notifier/internal/config"
 )
