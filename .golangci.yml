@@ -1,0 +1,62 @@
+version: "2"
+run:
+  tests: true
+linters:
+  default: standard
+  enable:
+    - gosec
+    - bodyclose
+    - nilerr
+    - nilnil
+    - gocritic
+
+    - revive
+    - gocyclo
+    - dupl
+    - misspell
+    - unparam
+    - unused
+
+    - errorlint
+    - errname
+
+    - usestdlibvars
+    - noctx
+    - contextcheck
+    - goconst
+
+    - whitespace
+    - godox
+    - lll
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+
+    lll:
+      line-length: 120
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+formatters:
+  enable:
+      - gofumpt
+      - gci
+  exclusions:
+    generated: lax
+output:
+  formats:
+    text:
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+  sort-order:
+    - linter
+    - severity
+    - file

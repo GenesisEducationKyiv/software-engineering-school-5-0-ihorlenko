@@ -1,6 +1,9 @@
 package repositories
 
 import (
+	"errors"
+
+	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
 	"github.com/ihorlenko/weather_notifier/internal/models"
 	"gorm.io/gorm"
 )
@@ -17,6 +20,9 @@ func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 	var user models.User
 	result := r.db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, apperrors.ErrUserNotFound
+		}
 		return nil, result.Error
 	}
 	return &user, nil
@@ -40,7 +46,7 @@ func (r *UserRepository) GetOrCreate(email string) (*models.User, error) {
 		return user, nil
 	}
 
-	if err != gorm.ErrRecordNotFound {
+	if !errors.Is(err, apperrors.ErrUserNotFound) {
 		return nil, err
 	}
 
