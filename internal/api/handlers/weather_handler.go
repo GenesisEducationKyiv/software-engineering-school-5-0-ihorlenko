@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ihorlenko/weather_notifier/internal/services"
@@ -35,7 +37,10 @@ func (h *WeatherHandler) GetWeather(c *gin.Context) {
 		return
 	}
 
-	weatherData, err := h.weatherService.GetWeather(c.Request.Context(), city)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	weatherData, err := h.weatherService.GetWeather(ctx, city)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
