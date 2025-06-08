@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ihorlenko/weather_notifier/internal/services"
@@ -16,9 +17,9 @@ type SubscriptionHandler struct {
 }
 
 type SubscribeRequest struct {
-	Email     string `json:"email" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
 	City      string `json:"city" binding:"required"`
-	Frequency string `json:"frequency" binding:"required"`
+	Frequency string `json:"frequency" binding:"required,oneof=hourly daily"`
 }
 
 func NewSubscriptionHandler(
@@ -51,15 +52,8 @@ func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 		return
 	}
 
-	if !isValidEmail(req.Email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
-		return
-	}
-
-	if req.Frequency != "hourly" && req.Frequency != "daily" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Frequency must be 'hourly' or 'daily'"})
-		return
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	_, err := h.weatherService.GetWeather(c.Request.Context(), req.City)
 	if err != nil {
