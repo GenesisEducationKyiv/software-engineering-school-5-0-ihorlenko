@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
+	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
 )
 
 type WeatherData struct {
@@ -52,7 +54,6 @@ func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*Weather
 	params.Add("key", ws.apiKey)
 	params.Add("q", city)
 	baseURL.RawQuery = params.Encode()
-
 	finalURL := baseURL.String()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, finalURL, nil)
@@ -62,17 +63,20 @@ func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*Weather
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to make request to weather API: %w", err)
+		log.Printf("Failed to make request to weather API: %v", err)
+		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("weather API returned non-200 status code: %d", resp.StatusCode)
+		log.Printf("Weather API returned non 200 status code: %d", resp.StatusCode)
+		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 
 	var apiResp WeatherAPIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
-		return nil, fmt.Errorf("failed to decode weather API response: %w", err)
+		log.Printf("Failed to decode weather API response: %v", err)
+		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 
 	return &WeatherData{
