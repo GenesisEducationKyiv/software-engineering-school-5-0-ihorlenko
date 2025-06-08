@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -55,7 +56,7 @@ func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := h.weatherService.GetWeather(c.Request.Context(), req.City)
+	_, err := h.weatherService.GetWeather(ctx, req.City)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid city or weather service unavailable"})
 		return
