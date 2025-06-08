@@ -3,8 +3,10 @@ package services
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
+	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
 	"github.com/ihorlenko/weather_notifier/internal/models"
 	"github.com/ihorlenko/weather_notifier/internal/repositories"
 )
@@ -59,7 +61,10 @@ func (s *SubscriptionService) CreateSubscription(email, city, frequency string) 
 func (s *SubscriptionService) ConfirmSubscription(token string) error {
 	subscription, err := s.subscriptionRepo.GetByConfirmationToken(token)
 	if err != nil {
-		return fmt.Errorf("subscription not found: %w", err)
+		if errors.Is(err, apperrors.ErrSubscriptionNotFound) {
+			return fmt.Errorf("subscription not found")
+		}
+		return fmt.Errorf("failed to find subscription: %w", err)
 	}
 
 	if subscription.Status != "pending" {
@@ -76,7 +81,10 @@ func (s *SubscriptionService) ConfirmSubscription(token string) error {
 func (s *SubscriptionService) Unsubscribe(token string) error {
 	subscription, err := s.subscriptionRepo.GetByUnsubscribeToken(token)
 	if err != nil {
-		return fmt.Errorf("subscription not found: %w", err)
+		if errors.Is(err, apperrors.ErrSubscriptionNotFound) {
+			return fmt.Errorf("subscription not found")
+		}
+		return fmt.Errorf("failed to find subscription: %w", err)
 	}
 
 	if subscription.Status == "cancelled" {
