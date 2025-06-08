@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -137,10 +136,4 @@ func (h *SubscriptionHandler) Unsubscribe(c *gin.Context) {
 	message := "You have successfully unsubscribed from weather updates"
 	redirectURL := "/?message_type=success&message=" + url.QueryEscape(message)
 	c.Redirect(http.StatusFound, redirectURL)
-}
-
-func isValidEmail(email string) bool {
-	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	matched, _ := regexp.MatchString(pattern, email)
-	return matched
 }
