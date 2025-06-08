@@ -7,6 +7,8 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+
+	// Required for Swagger documentation
 	_ "github.com/ihorlenko/weather_notifier/docs"
 	"github.com/ihorlenko/weather_notifier/internal/api/handlers"
 	"github.com/ihorlenko/weather_notifier/internal/config"
