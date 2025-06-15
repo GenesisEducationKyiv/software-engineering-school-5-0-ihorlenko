@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/url"
-	"regexp"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ihorlenko/weather_notifier/internal/services"
@@ -16,9 +17,9 @@ type SubscriptionHandler struct {
 }
 
 type SubscribeRequest struct {
-	Email     string `json:"email" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
 	City      string `json:"city" binding:"required"`
-	Frequency string `json:"frequency" binding:"required"`
+	Frequency string `json:"frequency" binding:"required,oneof=hourly daily"`
 }
 
 func NewSubscriptionHandler(
@@ -51,17 +52,10 @@ func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 		return
 	}
 
-	if !isValidEmail(req.Email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
-		return
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	if req.Frequency != "hourly" && req.Frequency != "daily" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Frequency must be 'hourly' or 'daily'"})
-		return
-	}
-
-	_, err := h.weatherService.GetWeather(req.City)
+	_, err := h.weatherService.GetWeather(ctx, req.City)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid city or weather service unavailable"})
 		return
@@ -109,7 +103,8 @@ func (h *SubscriptionHandler) Confirm(c *gin.Context) {
 		return
 	}
 
-	redirectURL := "/?message_type=success&message=" + url.QueryEscape("Your subscription has been successfully confirmed!")
+	message := "Your subscription has been successfully confirmed!"
+	redirectURL := "/?message_type=success&message=" + url.QueryEscape(message)
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
@@ -138,12 +133,7 @@ func (h *SubscriptionHandler) Unsubscribe(c *gin.Context) {
 		return
 	}
 
-	redirectURL := "/?message_type=success&message=" + url.QueryEscape("You have successfully unsubscribed from weather updates")
+	message := "You have successfully unsubscribed from weather updates"
+	redirectURL := "/?message_type=success&message=" + url.QueryEscape(message)
 	c.Redirect(http.StatusFound, redirectURL)
-}
-
-func isValidEmail(email string) bool {
-	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	matched, _ := regexp.MatchString(pattern, email)
-	return matched
 }

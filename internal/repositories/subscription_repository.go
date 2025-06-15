@@ -1,6 +1,9 @@
 package repositories
 
 import (
+	"errors"
+
+	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
 	"github.com/ihorlenko/weather_notifier/internal/models"
 	"gorm.io/gorm"
 )
@@ -19,8 +22,11 @@ func (sr *SubscriptionRepository) Create(sub *models.Subscription) error {
 
 func (sr *SubscriptionRepository) GetByConfirmationToken(token string) (*models.Subscription, error) {
 	var sub models.Subscription
-	result := sr.db.Where("confirmation_token = ?", token).Find(&sub)
+	result := sr.db.Where("confirmation_token = ?", token).First(&sub)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, apperrors.ErrSubscriptionNotFound
+		}
 		return nil, result.Error
 	}
 	return &sub, nil
@@ -28,8 +34,11 @@ func (sr *SubscriptionRepository) GetByConfirmationToken(token string) (*models.
 
 func (sr *SubscriptionRepository) GetByUnsubscribeToken(token string) (*models.Subscription, error) {
 	var sub models.Subscription
-	result := sr.db.Where("unsubscribe_token = ?", token).Find(&sub)
+	result := sr.db.Where("unsubscribe_token = ?", token).First(&sub)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, apperrors.ErrSubscriptionNotFound
+		}
 		return nil, result.Error
 	}
 	return &sub, nil
