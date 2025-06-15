@@ -1,0 +1,161 @@
+basePath: /api
+definitions:
+  github_com_ihorlenko_weather_notifier_internal_services.WeatherData:
+    properties:
+      city:
+        type: string
+      description:
+        type: string
+      humidity:
+        type: number
+      temperature:
+        type: number
+    type: object
+  internal_api_handlers.SubscribeRequest:
+    properties:
+      city:
+        type: string
+      email:
+        type: string
+      frequency:
+        type: string
+    required:
+    - city
+    - email
+    - frequency
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for weather notification subscription
+  title: Weather Notifier API
+  version: "1.0"
+paths:
+  /confirm/{token}:
+    get:
+      consumes:
+      - application/json
+      description: Confirm subscription via token from letter
+      parameters:
+      - description: Confirmation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Confirm subscription
+      tags:
+      - subscriptions
+  /subscribe:
+    post:
+      consumes:
+      - application/json
+      description: Subscribes a given email for weather updates
+      parameters:
+      - description: Subscription data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_handlers.SubscribeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Subscribe for weather updates
+      tags:
+      - subscriptions
+  /unsubscribe/{token}:
+    get:
+      consumes:
+      - application/json
+      description: Unsubscribes user from weather updates
+      parameters:
+      - description: Unsubscribe token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Unsubscribe from updates
+      tags:
+      - subscriptions
+  /weather:
+    get:
+      consumes:
+      - application/json
+      description: Returns current weather for a given city
+      parameters:
+      - description: City name
+        in: query
+        name: city
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ihorlenko_weather_notifier_internal_services.WeatherData'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get current weather for a city
+      tags:
+      - weather
+swagger: "2.0"
