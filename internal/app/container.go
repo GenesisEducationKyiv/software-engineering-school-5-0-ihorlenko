@@ -5,6 +5,7 @@ import (
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	"github.com/ihorlenko/weather_notifier/internal/database"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	"github.com/ihorlenko/weather_notifier/internal/repositories"
 	"github.com/ihorlenko/weather_notifier/internal/services"
 	"gorm.io/gorm"
@@ -14,12 +15,12 @@ type Container struct {
 	config *config.Config
 	db     *gorm.DB
 
-	userRepo         *repositories.UserRepository
-	subscriptionRepo *repositories.SubscriptionRepository
+	userRepo         interfaces.UserRepository
+	subscriptionRepo interfaces.SubscriptionRepository
 
-	weatherService      *services.WeatherService
-	emailService        *services.EmailService
-	subscriptionService *services.SubscriptionService
+	weatherService      interfaces.WeatherService
+	emailService        interfaces.EmailService
+	subscriptionService interfaces.SubscriptionService
 }
 
 func NewContainer(cfg *config.Config) (*Container, error) {
@@ -66,23 +67,23 @@ func (c *Container) GetDatabase() *gorm.DB {
 	return c.db
 }
 
-func (c *Container) GetUserRepository() *repositories.UserRepository {
+func (c *Container) GetUserRepository() interfaces.UserRepository {
 	return c.userRepo
 }
 
-func (c *Container) GetSubscriptionRepository() *repositories.SubscriptionRepository {
+func (c *Container) GetSubscriptionRepository() interfaces.SubscriptionRepository {
 	return c.subscriptionRepo
 }
 
-func (c *Container) GetWeatherService() *services.WeatherService {
+func (c *Container) GetWeatherService() interfaces.WeatherService {
 	return c.weatherService
 }
 
-func (c *Container) GetEmailService() *services.EmailService {
+func (c *Container) GetEmailService() interfaces.EmailService {
 	return c.emailService
 }
 
-func (c *Container) GetSubscriptionService() *services.SubscriptionService {
+func (c *Container) GetSubscriptionService() interfaces.SubscriptionService {
 	return c.subscriptionService
 }
 

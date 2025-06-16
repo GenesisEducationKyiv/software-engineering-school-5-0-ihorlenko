@@ -6,23 +6,23 @@ import (
 	_ "github.com/ihorlenko/weather_notifier/docs"
 	"github.com/ihorlenko/weather_notifier/internal/api/handlers"
 	"github.com/ihorlenko/weather_notifier/internal/config"
-	"github.com/ihorlenko/weather_notifier/internal/services"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Server struct {
 	config              *config.Config
-	weatherService      *services.WeatherService
-	subscriptionService *services.SubscriptionService
-	emailService        *services.EmailService
+	weatherService      interfaces.WeatherService
+	subscriptionService interfaces.SubscriptionService
+	emailService        interfaces.EmailService
 }
 
 func New(
 	config *config.Config,
-	weatherService *services.WeatherService,
-	subscriptionService *services.SubscriptionService,
-	emailService *services.EmailService,
+	weatherService interfaces.WeatherService,
+	subscriptionService interfaces.SubscriptionService,
+	emailService interfaces.EmailService,
 ) *Server {
 	return &Server{
 		config:              config,

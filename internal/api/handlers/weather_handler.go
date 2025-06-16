@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ihorlenko/weather_notifier/internal/services"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 )
 
 type WeatherHandler struct {
-	weatherService *services.WeatherService
+	weatherService interfaces.WeatherService
 }
 
-func NewWeatherHandler(weatherService *services.WeatherService) *WeatherHandler {
+func NewWeatherHandler(weatherService interfaces.WeatherService) *WeatherHandler {
 	return &WeatherHandler{
 		weatherService: weatherService,
 	}
@@ -26,7 +26,7 @@ func NewWeatherHandler(weatherService *services.WeatherService) *WeatherHandler 
 // @Accept       json
 // @Produce      json
 // @Param        city query string true "City name"
-// @Success      200  {object}  services.WeatherData
+// @Success      200  {object}  types.WeatherData
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Router       /weather [get]

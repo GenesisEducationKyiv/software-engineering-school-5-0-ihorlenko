@@ -7,19 +7,21 @@ import (
 	"fmt"
 
 	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	"github.com/ihorlenko/weather_notifier/internal/models"
-	"github.com/ihorlenko/weather_notifier/internal/repositories"
 )
 
+var _ interfaces.SubscriptionService = (*SubscriptionService)(nil)
+
 type SubscriptionService struct {
-	userRepo         *repositories.UserRepository
-	subscriptionRepo *repositories.SubscriptionRepository
+	userRepo         interfaces.UserRepository
+	subscriptionRepo interfaces.SubscriptionRepository
 }
 
 func NewSubscriptionService(
-	userRepo *repositories.UserRepository,
-	subscriptionRepo *repositories.SubscriptionRepository,
-) *SubscriptionService {
+	userRepo interfaces.UserRepository,
+	subscriptionRepo interfaces.SubscriptionRepository,
+) interfaces.SubscriptionService {
 	return &SubscriptionService{
 		userRepo:         userRepo,
 		subscriptionRepo: subscriptionRepo,
