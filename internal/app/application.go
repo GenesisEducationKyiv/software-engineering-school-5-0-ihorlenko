@@ -27,7 +27,6 @@ func New(cfg *config.Config) *Application {
 }
 
 func (app *Application) Initialize() error {
-
 	container, err := NewContainer(app.config)
 	if err != nil {
 		return fmt.Errorf("failed to initialize container: %w", err)
@@ -52,7 +51,6 @@ func (app *Application) Initialize() error {
 }
 
 func (app *Application) Run() error {
-
 	app.scheduler.Start()
 	log.Println("Scheduler started")
 
@@ -70,7 +68,6 @@ func (app *Application) Run() error {
 }
 
 func (app *Application) Shutdown() error {
-
 	if app.scheduler != nil {
 		app.scheduler.Stop()
 		log.Println("Scheduler stopped")

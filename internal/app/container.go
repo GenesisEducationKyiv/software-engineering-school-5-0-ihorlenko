@@ -38,7 +38,6 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 }
 
 func (c *Container) initializeDatabase() error {
-
 	if err := database.RunMigrations(c.config); err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
