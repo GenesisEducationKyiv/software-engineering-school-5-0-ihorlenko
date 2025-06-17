@@ -5,23 +5,24 @@ import (
 	"log"
 	"time"
 
-	"github.com/ihorlenko/weather_notifier/internal/repositories"
-	"github.com/ihorlenko/weather_notifier/internal/services"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	"github.com/robfig/cron/v3"
 )
 
+var _ interfaces.WeatherScheduler = (*WeatherScheduler)(nil)
+
 type WeatherScheduler struct {
-	subscriptionRepo *repositories.SubscriptionRepository
-	weatherService   *services.WeatherService
-	emailService     *services.EmailService
+	subscriptionRepo interfaces.SubscriptionRepository
+	weatherService   interfaces.WeatherService
+	emailService     interfaces.EmailService
 	cron             *cron.Cron
 }
 
 func NewWeatherScheduler(
-	subscriptionRepo *repositories.SubscriptionRepository,
-	weatherService *services.WeatherService,
-	emailService *services.EmailService,
-) *WeatherScheduler {
+	subscriptionRepo interfaces.SubscriptionRepository,
+	weatherService interfaces.WeatherService,
+	emailService interfaces.EmailService,
+) interfaces.WeatherScheduler {
 	c := cron.New(cron.WithSeconds(), cron.WithLocation(time.Local))
 
 	return &WeatherScheduler{

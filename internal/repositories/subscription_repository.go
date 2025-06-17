@@ -4,15 +4,18 @@ import (
 	"errors"
 
 	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	"github.com/ihorlenko/weather_notifier/internal/models"
 	"gorm.io/gorm"
 )
+
+var _ interfaces.SubscriptionRepository = (*SubscriptionRepository)(nil)
 
 type SubscriptionRepository struct {
 	db *gorm.DB
 }
 
-func NewSubscriptionRepository(db *gorm.DB) *SubscriptionRepository {
+func NewSubscriptionRepository(db *gorm.DB) interfaces.SubscriptionRepository {
 	return &SubscriptionRepository{db: db}
 }
 
