@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ihorlenko/weather_notifier/internal/services"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 )
 
 type SubscriptionHandler struct {
-	subscriptionService *services.SubscriptionService
-	emailService        *services.EmailService
-	weatherService      *services.WeatherService
+	subscriptionService interfaces.SubscriptionService
+	emailService        interfaces.EmailService
+	weatherService      interfaces.WeatherService
 }
 
 type SubscribeRequest struct {
@@ -23,9 +23,9 @@ type SubscribeRequest struct {
 }
 
 func NewSubscriptionHandler(
-	subscriptionService *services.SubscriptionService,
-	emailService *services.EmailService,
-	weatherService *services.WeatherService,
+	subscriptionService interfaces.SubscriptionService,
+	emailService interfaces.EmailService,
+	weatherService interfaces.WeatherService,
 ) *SubscriptionHandler {
 	return &SubscriptionHandler{
 		subscriptionService: subscriptionService,
