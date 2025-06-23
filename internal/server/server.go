@@ -16,6 +16,8 @@ type Server struct {
 	weatherService      interfaces.WeatherService
 	subscriptionService interfaces.SubscriptionService
 	emailService        interfaces.EmailService
+
+	subscriptionOrchestrator interfaces.SubscriptionOrchestrator
 }
 
 func New(
@@ -23,12 +25,14 @@ func New(
 	weatherService interfaces.WeatherService,
 	subscriptionService interfaces.SubscriptionService,
 	emailService interfaces.EmailService,
+	subscriptionOrchestrator interfaces.SubscriptionOrchestrator,
 ) *Server {
 	return &Server{
-		config:              config,
-		weatherService:      weatherService,
-		subscriptionService: subscriptionService,
-		emailService:        emailService,
+		config:                   config,
+		weatherService:           weatherService,
+		subscriptionService:      subscriptionService,
+		emailService:             emailService,
+		subscriptionOrchestrator: subscriptionOrchestrator,
 	}
 }
 
@@ -36,10 +40,10 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	router := gin.Default()
 
 	weatherHandler := handlers.NewWeatherHandler(s.weatherService)
+
 	subscriptionHandler := handlers.NewSubscriptionHandler(
+		s.subscriptionOrchestrator,
 		s.subscriptionService,
-		s.emailService,
-		s.weatherService,
 	)
 
 	router.GET("/ping", handlers.PingHandler)

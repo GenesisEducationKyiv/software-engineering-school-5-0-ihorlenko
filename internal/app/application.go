@@ -45,6 +45,7 @@ func (app *Application) Initialize() error {
 		container.GetWeatherService(),
 		container.GetSubscriptionService(),
 		container.GetEmailService(),
+		container.GetSubscriptionOrchestrator(),
 	)
 
 	log.Println("Application initialized successfully")
