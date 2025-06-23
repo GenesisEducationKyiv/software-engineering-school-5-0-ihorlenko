@@ -21,3 +21,7 @@ type SubscriptionService interface {
 	ConfirmSubscription(token string) error
 	Unsubscribe(token string) error
 }
+
+type SubscriptionOrchestrator interface {
+	ProcessSubscription(ctx context.Context, email, city, frequency string) (*models.Subscription, error)
+}
