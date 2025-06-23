@@ -21,6 +21,9 @@ type Container struct {
 	weatherService      interfaces.WeatherService
 	emailService        interfaces.EmailService
 	subscriptionService interfaces.SubscriptionService
+
+	weatherValidator         interfaces.WeatherValidator
+	subscriptionOrchestrator interfaces.SubscriptionOrchestrator
 }
 
 func NewContainer(cfg *config.Config) (*Container, error) {
@@ -33,7 +36,8 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	}
 
 	container.initializeRepositories()
-	container.initializeServices()
+	container.initializeCoreServices()
+	container.initializeCompositeServices()
 
 	return container, nil
 }
@@ -57,10 +61,20 @@ func (c *Container) initializeRepositories() {
 	c.subscriptionRepo = repositories.NewSubscriptionRepository(c.db)
 }
 
-func (c *Container) initializeServices() {
+func (c *Container) initializeCoreServices() {
 	c.weatherService = services.NewWeatherService(c.config)
 	c.emailService = services.NewEmailService(c.config)
 	c.subscriptionService = services.NewSubscriptionService(c.userRepo, c.subscriptionRepo)
+}
+
+func (c *Container) initializeCompositeServices() {
+	c.weatherValidator = services.NewWeatherValidator(c.weatherService)
+
+	c.subscriptionOrchestrator = services.NewSubscriptionOrchestrator(
+		c.weatherValidator,
+		c.subscriptionService,
+		c.emailService,
+	)
 }
 
 func (c *Container) GetDatabase() *gorm.DB {
@@ -85,6 +99,14 @@ func (c *Container) GetEmailService() interfaces.EmailService {
 
 func (c *Container) GetSubscriptionService() interfaces.SubscriptionService {
 	return c.subscriptionService
+}
+
+func (c *Container) GetWeatherValidator() interfaces.WeatherValidator {
+	return c.weatherValidator
+}
+
+func (c *Container) GetSubscriptionOrchestrator() interfaces.SubscriptionOrchestrator {
+	return c.subscriptionOrchestrator
 }
 
 func (c *Container) Close() error {
