@@ -11,9 +11,8 @@ import (
 )
 
 type SubscriptionHandler struct {
+	orchestrator        interfaces.SubscriptionOrchestrator
 	subscriptionService interfaces.SubscriptionService
-	emailService        interfaces.EmailService
-	weatherService      interfaces.WeatherService
 }
 
 type SubscribeRequest struct {
@@ -23,14 +22,12 @@ type SubscribeRequest struct {
 }
 
 func NewSubscriptionHandler(
+	orchestrator interfaces.SubscriptionOrchestrator,
 	subscriptionService interfaces.SubscriptionService,
-	emailService interfaces.EmailService,
-	weatherService interfaces.WeatherService,
 ) *SubscriptionHandler {
 	return &SubscriptionHandler{
+		orchestrator:        orchestrator,
 		subscriptionService: subscriptionService,
-		emailService:        emailService,
-		weatherService:      weatherService,
 	}
 }
 
@@ -48,28 +45,16 @@ func NewSubscriptionHandler(
 func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 	var req SubscribeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format: " + err.Error()})
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := h.weatherService.GetWeather(ctx, req.City)
+	_, err := h.orchestrator.ProcessSubscription(ctx, req.Email, req.City, req.Frequency)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid city or weather service unavailable"})
-		return
-	}
-
-	subscription, err := h.subscriptionService.CreateSubscription(req.Email, req.City, req.Frequency)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = h.emailService.SendConfirmationEmail(req.Email, req.City, subscription.ConfirmationToken)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send confirmation email"})
+		h.handleSubscriptionError(c, err)
 		return
 	}
 
@@ -136,4 +121,23 @@ func (h *SubscriptionHandler) Unsubscribe(c *gin.Context) {
 	message := "You have successfully unsubscribed from weather updates"
 	redirectURL := "/?message_type=success&message=" + url.QueryEscape(message)
 	c.Redirect(http.StatusFound, redirectURL)
+}
+
+func (h *SubscriptionHandler) handleSubscriptionError(c *gin.Context, err error) {
+	errorMsg := err.Error()
+
+	switch {
+	case contains(errorMsg, "city validation failed"):
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid city or weather service unavailable"})
+	case contains(errorMsg, "subscription creation failed"):
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create subscription"})
+	case contains(errorMsg, "confirmation email failed"):
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Subscription created but email failed to send"})
+	default:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "An unexpected error occurred"})
+	}
+}
+
+func contains(str, substr string) bool {
+	return len(str) >= len(substr) && str[:len(substr)] == substr
 }
