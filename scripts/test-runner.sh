@@ -49,7 +49,6 @@ run_unit_tests() {
 }
 
 run_integration_tests() {
-    check_docker
     
     if [ -f "scripts/run-integration-tests.sh" ]; then
         run_with_status "Integration tests" "chmod +x scripts/run-integration-tests.sh && scripts/run-integration-tests.sh"

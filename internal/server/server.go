@@ -60,11 +60,7 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	router.Static("/static", "./web/static")
 
 	router.NoRoute(func(c *gin.Context) {
-		if c.Request.URL.Path != "/" && !gin.IsDebugging() {
-			c.File("./web/index.html")
-		} else {
-			c.File("./web/index.html")
-		}
+		c.File("./web/index.html")
 	})
 
 	return router

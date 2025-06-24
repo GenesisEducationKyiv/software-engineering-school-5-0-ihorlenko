@@ -13,8 +13,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // Initializing Postgres driver
+	_ "github.com/golang-migrate/migrate/v4/source/file"       // Initializing file source driver
 	"github.com/ihorlenko/weather_notifier/internal/app"
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	"github.com/ihorlenko/weather_notifier/internal/database"

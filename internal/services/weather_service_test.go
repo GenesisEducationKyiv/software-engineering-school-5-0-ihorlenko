@@ -10,27 +10,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	testAPIKey = "test-api-key"
+)
+
 func TestWeatherService_GetWeather_Success(t *testing.T) {
 	defer gock.Off()
 
 	cfg := &config.Config{
 		WeatherAPIConfig: config.WeatherAPIConfig{
-			APIKey: "test-api-key",
+			APIKey: testAPIKey,
 		},
 	}
 
 	service := NewWeatherService(cfg)
 	ctx := context.Background()
-	city := "Odesa"
+	city := testCity
 
 	gock.New("https://api.weatherapi.com").
 		Get("/v1/current.json").
-		MatchParam("key", "test-api-key").
+		MatchParam("key", testAPIKey).
 		MatchParam("q", city).
 		Reply(200).
 		JSON(map[string]interface{}{
 			"location": map[string]interface{}{
-				"name": "Odesa",
+				"name": testCity,
 			},
 			"current": map[string]interface{}{
 				"temp_c":   15.5,
@@ -45,7 +49,7 @@ func TestWeatherService_GetWeather_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, "Odesa", result.City)
+	assert.Equal(t, testCity, result.City)
 	assert.Equal(t, 15.5, result.Temperature)
 	assert.Equal(t, 65.0, result.Humidity)
 	assert.Equal(t, "Partly cloudy", result.Description)
@@ -58,7 +62,7 @@ func TestWeatherService_GetWeather_APIReturnsError(t *testing.T) {
 
 	cfg := &config.Config{
 		WeatherAPIConfig: config.WeatherAPIConfig{
-			APIKey: "test-api-key",
+			APIKey: testAPIKey,
 		},
 	}
 
@@ -68,7 +72,7 @@ func TestWeatherService_GetWeather_APIReturnsError(t *testing.T) {
 
 	gock.New("https://api.weatherapi.com").
 		Get("/v1/current.json").
-		MatchParam("key", "test-api-key").
+		MatchParam("key", testAPIKey).
 		MatchParam("q", city).
 		Reply(400).
 		JSON(map[string]interface{}{
@@ -92,13 +96,13 @@ func TestWeatherService_GetWeather_NetworkError(t *testing.T) {
 
 	cfg := &config.Config{
 		WeatherAPIConfig: config.WeatherAPIConfig{
-			APIKey: "test-api-key",
+			APIKey: testAPIKey,
 		},
 	}
 
 	service := NewWeatherService(cfg)
 	ctx := context.Background()
-	city := "Odesa"
+	city := testCity
 
 	result, err := service.GetWeather(ctx, city)
 
@@ -112,17 +116,17 @@ func TestWeatherService_GetWeather_MalformedJSON(t *testing.T) {
 
 	cfg := &config.Config{
 		WeatherAPIConfig: config.WeatherAPIConfig{
-			APIKey: "test-api-key",
+			APIKey: testAPIKey,
 		},
 	}
 
 	service := NewWeatherService(cfg)
 	ctx := context.Background()
-	city := "Odesa"
+	city := testCity
 
 	gock.New("https://api.weatherapi.com").
 		Get("/v1/current.json").
-		MatchParam("key", "test-api-key").
+		MatchParam("key", testAPIKey).
 		MatchParam("q", city).
 		Reply(200).
 		BodyString("invalid json response")
@@ -141,7 +145,7 @@ func TestWeatherService_GetWeather_ContextCancelled(t *testing.T) {
 
 	cfg := &config.Config{
 		WeatherAPIConfig: config.WeatherAPIConfig{
-			APIKey: "test-api-key",
+			APIKey: testAPIKey,
 		},
 	}
 
@@ -150,7 +154,7 @@ func TestWeatherService_GetWeather_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	city := "Odesa"
+	city := testCity
 
 	result, err := service.GetWeather(ctx, city)
 
@@ -164,7 +168,7 @@ func TestWeatherService_GetWeather_SpecialCharactersInCity(t *testing.T) {
 
 	cfg := &config.Config{
 		WeatherAPIConfig: config.WeatherAPIConfig{
-			APIKey: "test-api-key",
+			APIKey: testAPIKey,
 		},
 	}
 
@@ -174,7 +178,7 @@ func TestWeatherService_GetWeather_SpecialCharactersInCity(t *testing.T) {
 
 	gock.New("https://api.weatherapi.com").
 		Get("/v1/current.json").
-		MatchParam("key", "test-api-key").
+		MatchParam("key", testAPIKey).
 		MatchParam("q", city).
 		Reply(200).
 		JSON(map[string]interface{}{

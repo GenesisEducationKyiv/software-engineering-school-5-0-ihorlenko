@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -28,8 +29,11 @@ func (s *BasicEndpointsTestSuite) SetupTest() {
 }
 
 func (s *BasicEndpointsTestSuite) TestPingEndpoint() {
-	resp, err := http.Get(s.testSuite.GetBaseURL() + "/ping")
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.testSuite.GetBaseURL()+"/ping", nil)
+	assert.NoError(s.T(), err)
 
+	resp, err := http.DefaultClient.Do(req)
 	assert.NoError(s.T(), err)
 	defer resp.Body.Close()
 
@@ -43,14 +47,22 @@ func (s *BasicEndpointsTestSuite) TestPingEndpoint() {
 }
 
 func (s *BasicEndpointsTestSuite) TestHealthCheck() {
-	resp, err := http.Get(s.testSuite.GetBaseURL() + "/ping")
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.testSuite.GetBaseURL()+"/ping", nil)
+	assert.NoError(s.T(), err)
+
+	resp, err := http.DefaultClient.Do(req)
 	assert.NoError(s.T(), err)
 	defer resp.Body.Close()
 	assert.Equal(s.T(), http.StatusOK, resp.StatusCode)
 }
 
 func (s *BasicEndpointsTestSuite) TestInvalidEndpoint() {
-	resp, err := http.Get(s.testSuite.GetBaseURL() + "/nonexistent")
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.testSuite.GetBaseURL()+"/nonexistent", nil)
+	assert.NoError(s.T(), err)
+
+	resp, err := http.DefaultClient.Do(req)
 	assert.NoError(s.T(), err)
 	defer resp.Body.Close()
 

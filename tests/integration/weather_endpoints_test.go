@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// SimpleWeatherEndpointsTestSuite tests weather endpoints without external API mocking
 type SimpleWeatherEndpointsTestSuite struct {
 	suite.Suite
 	testSuite *helpers.TestSuite
@@ -28,9 +28,12 @@ func (s *SimpleWeatherEndpointsTestSuite) SetupTest() {
 	s.testSuite.CleanupDatabase(s.T())
 }
 
-// TestGetWeatherMissingCity tests weather endpoint without city parameter
 func (s *SimpleWeatherEndpointsTestSuite) TestGetWeatherMissingCity() {
-	resp, err := http.Get(s.testSuite.GetBaseURL() + "/api/weather")
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.testSuite.GetBaseURL()+"/api/weather", nil)
+	assert.NoError(s.T(), err)
+
+	resp, err := http.DefaultClient.Do(req)
 	assert.NoError(s.T(), err)
 	defer resp.Body.Close()
 
@@ -43,9 +46,12 @@ func (s *SimpleWeatherEndpointsTestSuite) TestGetWeatherMissingCity() {
 	assert.Contains(s.T(), result["error"], "City parameter is required")
 }
 
-// TestGetWeatherEmptyCity tests weather endpoint with empty city parameter
 func (s *SimpleWeatherEndpointsTestSuite) TestGetWeatherEmptyCity() {
-	resp, err := http.Get(s.testSuite.GetBaseURL() + "/api/weather?city=")
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.testSuite.GetBaseURL()+"/api/weather?city=", nil)
+	assert.NoError(s.T(), err)
+
+	resp, err := http.DefaultClient.Do(req)
 	assert.NoError(s.T(), err)
 	defer resp.Body.Close()
 
@@ -58,21 +64,24 @@ func (s *SimpleWeatherEndpointsTestSuite) TestGetWeatherEmptyCity() {
 	assert.Contains(s.T(), result["error"], "City parameter is required")
 }
 
-// TestGetWeatherWithInvalidCity tests handling of weather API errors
 func (s *SimpleWeatherEndpointsTestSuite) TestGetWeatherWithInvalidCity() {
-	// This will actually call the external API, so we expect an error due to invalid API key
-	resp, err := http.Get(s.testSuite.GetBaseURL() + "/api/weather?city=InvalidCity123XYZ")
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(
+		ctx, http.MethodGet,
+		s.testSuite.GetBaseURL()+"/api/weather?city=InvalidCity123XYZ", nil,
+	)
+	assert.NoError(s.T(), err)
+
+	resp, err := http.DefaultClient.Do(req)
 	assert.NoError(s.T(), err)
 	defer resp.Body.Close()
 
-	// Should return 500 due to invalid API key or invalid city
 	assert.Equal(s.T(), http.StatusInternalServerError, resp.StatusCode)
 
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	assert.NoError(s.T(), err)
 
-	// Should contain error about weather service
 	assert.Contains(s.T(), result["error"], "weather service")
 }
 
