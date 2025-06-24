@@ -112,7 +112,7 @@ jobs:
 
     - name: Run E2E tests
       run: |
-        docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit e2e-tests
+        docker compose -f docker-compose.test.yml up --build --abort-on-container-exit e2e-tests
       env:
         COMPOSE_HTTP_TIMEOUT: 200
 
@@ -120,7 +120,7 @@ jobs:
       if: always()
       run: |
         mkdir -p test-results
-        docker cp $(docker-compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.json ./test-results/ 2>/dev/null || echo "No test results to copy"
+        docker cp $(docker compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.json ./test-results/ 2>/dev/null || echo "No test results to copy"
 
     - name: Upload E2E test results
       uses: actions/upload-artifact@v4
@@ -132,7 +132,7 @@ jobs:
     - name: Clean up Docker containers
       if: always()
       run: |
-        docker-compose -f docker-compose.test.yml down -v || true
+        docker compose -f docker-compose.test.yml down -v || true
 
   combine-coverage:
     name: Combine Coverage Reports

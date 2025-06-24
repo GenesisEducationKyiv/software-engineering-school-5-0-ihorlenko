@@ -34,7 +34,7 @@ jobs:
 
     - name: Build and run E2E tests
       run: |
-        docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit e2e-tests
+        docker compose -f docker-compose.test.yml up --build --abort-on-container-exit e2e-tests
       env:
         COMPOSE_HTTP_TIMEOUT: 200
 
@@ -45,9 +45,9 @@ jobs:
         mkdir -p test-results
         
         # Copy results from container if it exists
-        docker cp $(docker-compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.json ./test-results/ 2>/dev/null || echo "No test results to copy"
-        docker cp $(docker-compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.xml ./test-results/ 2>/dev/null || echo "No JUnit results to copy"
-        docker cp $(docker-compose -f docker-compose.test.yml ps -q e2e-tests):/app/playwright-report ./test-results/ 2>/dev/null || echo "No HTML report to copy"
+        docker cp $(docker compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.json ./test-results/ 2>/dev/null || echo "No test results to copy"
+        docker cp $(docker compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.xml ./test-results/ 2>/dev/null || echo "No JUnit results to copy"
+        docker cp $(docker compose -f docker-compose.test.yml ps -q e2e-tests):/app/playwright-report ./test-results/ 2>/dev/null || echo "No HTML report to copy"
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -81,7 +81,7 @@ jobs:
     - name: Clean up Docker containers
       if: always()
       run: |
-        docker-compose -f docker-compose.test.yml down -v || true
+        docker compose -f docker-compose.test.yml down -v || true
         docker system prune -af --volumes || true
 
     - name: Check test results
