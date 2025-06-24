@@ -1,0 +1,146 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Create test environment file
+      run: |
+        cat > .env << EOF
+        POSTGRES_HOST=test-postgres
+        POSTGRES_USER=test_user
+        POSTGRES_PASSWORD=test_password
+        POSTGRES_DB=test_weather_api
+        WEATHER_API_KEY=test_api_key
+        EMAIL_FROM=test@example.com
+        EMAIL_PASSWORD=test_password
+        EMAIL_SMTP_HOST=localhost
+        EMAIL_SMTP_PORT=587
+        BASE_URL=http://test-app:8080
+        EOF
+
+    - name: Build and run E2E tests
+      run: |
+        docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit e2e-tests
+      env:
+        COMPOSE_HTTP_TIMEOUT: 200
+
+    - name: Extract test results
+      if: always()
+      run: |
+        # Create results directory
+        mkdir -p test-results
+        
+        # Copy results from container if it exists
+        docker cp $(docker-compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.json ./test-results/ 2>/dev/null || echo "No test results to copy"
+        docker cp $(docker-compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.xml ./test-results/ 2>/dev/null || echo "No JUnit results to copy"
+        docker cp $(docker-compose -f docker-compose.test.yml ps -q e2e-tests):/app/playwright-report ./test-results/ 2>/dev/null || echo "No HTML report to copy"
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-test-results
+        path: |
+          test-results/
+          tests/e2e/test-results/
+          tests/e2e/playwright-report/
+        retention-days: 30
+
+    - name: Upload screenshots and videos
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: e2e-test-artifacts
+        path: |
+          tests/e2e/test-results/
+        retention-days: 30
+
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: E2E Test Results
+        path: test-results/test-results.xml
+        reporter: java-junit
+        fail-on-error: true
+
+    - name: Clean up Docker containers
+      if: always()
+      run: |
+        docker-compose -f docker-compose.test.yml down -v || true
+        docker system prune -af --volumes || true
+
+    - name: Check test results
+      if: failure()
+      run: |
+        echo "E2E tests failed. Please check the test output and artifacts above."
+        exit 1
+
+  e2e-tests-matrix:
+    name: E2E Tests (Multiple Browsers)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+      fail-fast: false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: tests/e2e/package-lock.json
+
+    - name: Install dependencies
+      working-directory: tests/e2e
+      run: npm ci
+
+    - name: Install Playwright browsers
+      working-directory: tests/e2e
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Start application
+      run: |
+        make up
+        # Wait for application to be ready
+        timeout 60 bash -c 'until curl -f http://localhost:8080/ping; do sleep 2; done'
+
+    - name: Run E2E tests on ${{ matrix.browser }}
+      working-directory: tests/e2e
+      run: npx playwright test --project=${{ matrix.browser }}
+      env:
+        BASE_URL: http://localhost:8080
+
+    - name: Upload test results for ${{ matrix.browser }}
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-results-${{ matrix.browser }}
+        path: |
+          tests/e2e/test-results/
+          tests/e2e/playwright-report/
+        retention-days: 30
+
+    - name: Stop application
+      if: always()
+      run: make down
