@@ -38,57 +38,11 @@ jobs:
       env:
         COMPOSE_HTTP_TIMEOUT: 200
 
-    - name: Extract test results
-      if: always()
-      run: |
-        # Create results directory
-        mkdir -p test-results
-        
-        # Copy results from container if it exists
-        docker cp $(docker compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.json ./test-results/ 2>/dev/null || echo "No test results to copy"
-        docker cp $(docker compose -f docker-compose.test.yml ps -q e2e-tests):/app/test-results.xml ./test-results/ 2>/dev/null || echo "No JUnit results to copy"
-        docker cp $(docker compose -f docker-compose.test.yml ps -q e2e-tests):/app/playwright-report ./test-results/ 2>/dev/null || echo "No HTML report to copy"
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: e2e-test-results
-        path: |
-          test-results/
-          tests/e2e/test-results/
-          tests/e2e/playwright-report/
-        retention-days: 30
-
-    - name: Upload screenshots and videos
-      uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: e2e-test-artifacts
-        path: |
-          tests/e2e/test-results/
-        retention-days: 30
-
-    - name: Publish test results
-      uses: dorny/test-reporter@v1
-      if: success() || failure()
-      with:
-        name: E2E Test Results
-        path: test-results/test-results.xml
-        reporter: java-junit
-        fail-on-error: true
-
     - name: Clean up Docker containers
       if: always()
       run: |
         docker compose -f docker-compose.test.yml down -v || true
         docker system prune -af --volumes || true
-
-    - name: Check test results
-      if: failure()
-      run: |
-        echo "E2E tests failed. Please check the test output and artifacts above."
-        exit 1
 
   e2e-tests-matrix:
     name: E2E Tests (Multiple Browsers)
