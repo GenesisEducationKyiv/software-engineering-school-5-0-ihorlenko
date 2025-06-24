@@ -1,6 +1,9 @@
 package server
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	// Required for Swagger documentation
 	_ "github.com/ihorlenko/weather_notifier/docs"
@@ -60,6 +63,13 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	router.Static("/static", "./web/static")
 
 	router.NoRoute(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "endpoint not found",
+			})
+			return
+		}
+
 		c.File("./web/index.html")
 	})
 
