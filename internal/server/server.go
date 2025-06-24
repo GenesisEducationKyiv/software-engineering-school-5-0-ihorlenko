@@ -40,7 +40,6 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	router := gin.Default()
 
 	weatherHandler := handlers.NewWeatherHandler(s.weatherService)
-
 	subscriptionHandler := handlers.NewSubscriptionHandler(
 		s.subscriptionOrchestrator,
 		s.subscriptionService,
@@ -59,7 +58,14 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.Static("/static", "./web/static")
-	router.StaticFile("/", "./web/index.html")
+
+	router.NoRoute(func(c *gin.Context) {
+		if c.Request.URL.Path != "/" && !gin.IsDebugging() {
+			c.File("./web/index.html")
+		} else {
+			c.File("./web/index.html")
+		}
+	})
 
 	return router
 }
