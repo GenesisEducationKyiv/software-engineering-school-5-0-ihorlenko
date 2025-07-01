@@ -6,7 +6,11 @@ import (
 	"strings"
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
+	"github.com/ihorlenko/weather_notifier/internal/interfaces"
+	"github.com/ihorlenko/weather_notifier/internal/types"
 )
+
+var _ interfaces.EmailService = (*EmailService)(nil)
 
 type EmailService struct {
 	from     string
@@ -16,7 +20,7 @@ type EmailService struct {
 	baseURL  string
 }
 
-func NewEmailService(cfg *config.Config) *EmailService {
+func NewEmailService(cfg *config.Config) interfaces.EmailService {
 	return &EmailService{
 		from:     cfg.EmailConfig.From,
 		password: cfg.EmailConfig.Password,
@@ -108,7 +112,12 @@ func (s *EmailService) SendConfirmationEmail(email, city, token string) error {
 	return s.sendHTMLEmail(email, subject, htmlBody)
 }
 
-func (s *EmailService) SendWeatherUpdate(email, city string, weather *WeatherData, unsubscribeToken string) error {
+func (s *EmailService) SendWeatherUpdate(
+	email,
+	city string,
+	weather *types.WeatherData,
+	unsubscribeToken string,
+) error {
 	subject := fmt.Sprintf("Weather Update for %s", city)
 	unsubscribeURL := fmt.Sprintf("%s/api/unsubscribe/%s", s.baseURL, unsubscribeToken)
 
@@ -120,6 +129,7 @@ func (s *EmailService) SendWeatherUpdate(email, city string, weather *WeatherDat
 	} else if weather.Temperature > 10 {
 		tempColor = "#f39c12"
 	}
+
 	htmlBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
