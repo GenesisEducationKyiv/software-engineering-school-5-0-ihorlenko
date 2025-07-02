@@ -29,11 +29,8 @@ func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 }
 
 func (r *UserRepository) Create(email string) (*models.User, error) {
-	user := models.User{
-		Email: email,
-	}
+	user := models.User{Email: email}
 	result := r.db.Create(&user)
-
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -45,10 +42,8 @@ func (r *UserRepository) GetOrCreate(email string) (*models.User, error) {
 	if err == nil {
 		return user, nil
 	}
-
 	if !errors.Is(err, apperrors.ErrUserNotFound) {
 		return nil, err
 	}
-
 	return r.Create(email)
 }
