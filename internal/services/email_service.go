@@ -6,11 +6,8 @@ import (
 	"strings"
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	"github.com/ihorlenko/weather_notifier/internal/types"
 )
-
-var _ interfaces.EmailService = (*EmailService)(nil)
 
 type EmailService struct {
 	from     string
@@ -20,7 +17,7 @@ type EmailService struct {
 	baseURL  string
 }
 
-func NewEmailService(cfg *config.Config) interfaces.EmailService {
+func NewEmailService(cfg *config.Config) *EmailService {
 	return &EmailService{
 		from:     cfg.EmailConfig.From,
 		password: cfg.EmailConfig.Password,
