@@ -1,4 +1,4 @@
-package types
+package weather
 
 type WeatherData struct {
 	City        string  `json:"city" validate:"required,min=1,max=200"`
