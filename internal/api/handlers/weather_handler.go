@@ -6,14 +6,18 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 )
 
-type WeatherHandler struct {
-	weatherService interfaces.WeatherService
+type WeatherRetriever interface {
+	GetWeather(ctx context.Context, city string) (*weather.Data, error)
 }
 
-func NewWeatherHandler(weatherService interfaces.WeatherService) *WeatherHandler {
+type WeatherHandler struct {
+	weatherService WeatherRetriever
+}
+
+func NewWeatherHandler(weatherService WeatherRetriever) *WeatherHandler {
 	return &WeatherHandler{
 		weatherService: weatherService,
 	}

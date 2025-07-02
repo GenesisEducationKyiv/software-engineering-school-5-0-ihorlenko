@@ -10,25 +10,22 @@ import (
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 )
-
-var _ interfaces.WeatherService = (*WeatherService)(nil)
 
 type WeatherService struct {
 	baseURL string
 	apiKey  string
 }
 
-func NewWeatherService(cfg *config.Config) interfaces.WeatherService {
+func NewWeatherService(cfg *config.Config) *WeatherService {
 	return &WeatherService{
 		baseURL: "https://api.weatherapi.com/v1/",
 		apiKey:  cfg.WeatherAPIConfig.APIKey,
 	}
 }
 
-func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*types.WeatherData, error) {
+func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*weather.Data, error) {
 	baseURL, err := url.Parse(ws.baseURL + "current.json")
 	if err != nil {
 		return nil, fmt.Errorf("invalid base URL: %w", err)
@@ -52,18 +49,37 @@ func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*types.W
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusBadRequest {
+		var errorResp struct {
+			Error struct {
+				Code    int    `json:"code"`
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&errorResp); err == nil {
+			if errorResp.Error.Code == 1006 {
+				log.Printf("Invalid city requested: %s", city)
+				return nil, apperrors.ErrInvalidCity
+			}
+		}
+
+		log.Printf("Weather API returned 400 for city %s: %v", city, errorResp.Error.Message)
+		return nil, apperrors.ErrInvalidCity
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Weather API returned non 200 status code: %d", resp.StatusCode)
 		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 
-	var apiResp types.WeatherAPIResponse
+	var apiResp weather.APIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
 		log.Printf("Failed to decode weather API response: %v", err)
 		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 
-	return &types.WeatherData{
+	return &weather.Data{
 		City:        apiResp.Location.Name,
 		Temperature: apiResp.Current.TempC,
 		Humidity:    apiResp.Current.Humidity,

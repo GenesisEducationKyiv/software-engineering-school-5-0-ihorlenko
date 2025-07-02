@@ -8,16 +8,20 @@ import (
 	"time"
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	"github.com/ihorlenko/weather_notifier/internal/scheduler"
 	"github.com/ihorlenko/weather_notifier/internal/server"
 )
+
+type WeatherScheduler interface {
+	Start()
+	Stop()
+}
 
 type Application struct {
 	config     *config.Config
 	container  *Container
 	server     *server.Server
-	scheduler  interfaces.WeatherScheduler
+	scheduler  WeatherScheduler
 	httpServer *http.Server
 }
 

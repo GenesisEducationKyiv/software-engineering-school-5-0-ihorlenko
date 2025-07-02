@@ -1,13 +1,13 @@
-package types
+package weather
 
-type WeatherData struct {
-	City        string  `json:"city"`
+type Data struct {
+	City        string  `json:"city" validate:"required,min=1,max=200"`
 	Temperature float64 `json:"temperature"`
 	Humidity    float64 `json:"humidity"`
 	Description string  `json:"description"`
 }
 
-type WeatherAPIResponse struct {
+type APIResponse struct {
 	Location struct {
 		Name string `json:"name"`
 	} `json:"location"`

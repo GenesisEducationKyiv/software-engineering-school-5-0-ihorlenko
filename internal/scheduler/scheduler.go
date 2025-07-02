@@ -5,24 +5,40 @@ import (
 	"log"
 	"time"
 
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
+	"github.com/ihorlenko/weather_notifier/internal/models"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 	"github.com/robfig/cron/v3"
 )
 
-var _ interfaces.WeatherScheduler = (*WeatherScheduler)(nil)
+type SubscriptionRepositoryManager interface {
+	Create(sub *models.Subscription) error
+	GetByConfirmationToken(token string) (*models.Subscription, error)
+	GetByUnsubscribeToken(token string) (*models.Subscription, error)
+	UpdateStatus(id uint, status string) error
+	GetActiveSubscriptionsByFrequency(frequency string) ([]models.Subscription, error)
+}
+
+type WeatherRetriever interface {
+	GetWeather(ctx context.Context, city string) (*weather.Data, error)
+}
+
+type EmailSender interface {
+	SendConfirmationEmail(email, city, token string) error
+	SendWeatherUpdate(email, city string, weather *weather.Data, unsubscribeToken string) error
+}
 
 type WeatherScheduler struct {
-	subscriptionRepo interfaces.SubscriptionRepository
-	weatherService   interfaces.WeatherService
-	emailService     interfaces.EmailService
+	subscriptionRepo SubscriptionRepositoryManager
+	weatherService   WeatherRetriever
+	emailService     EmailSender
 	cron             *cron.Cron
 }
 
 func NewWeatherScheduler(
-	subscriptionRepo interfaces.SubscriptionRepository,
-	weatherService interfaces.WeatherService,
-	emailService interfaces.EmailService,
-) interfaces.WeatherScheduler {
+	subscriptionRepo SubscriptionRepositoryManager,
+	weatherService WeatherRetriever,
+	emailService EmailSender,
+) *WeatherScheduler {
 	c := cron.New(cron.WithSeconds(), cron.WithLocation(time.Local))
 
 	return &WeatherScheduler{

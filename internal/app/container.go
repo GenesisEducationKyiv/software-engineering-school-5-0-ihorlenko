@@ -1,29 +1,68 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	"github.com/ihorlenko/weather_notifier/internal/database"
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
+	"github.com/ihorlenko/weather_notifier/internal/models"
 	"github.com/ihorlenko/weather_notifier/internal/repositories"
 	"github.com/ihorlenko/weather_notifier/internal/services"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 	"gorm.io/gorm"
 )
+
+type UserRepository interface {
+	GetByEmail(email string) (*models.User, error)
+	Create(email string) (*models.User, error)
+	GetOrCreate(email string) (*models.User, error)
+}
+
+type SubscriptionRepository interface {
+	Create(sub *models.Subscription) error
+	GetByConfirmationToken(token string) (*models.Subscription, error)
+	GetByUnsubscribeToken(token string) (*models.Subscription, error)
+	UpdateStatus(id uint, status string) error
+	GetActiveSubscriptionsByFrequency(frequency string) ([]models.Subscription, error)
+}
+
+type WeatherService interface {
+	GetWeather(ctx context.Context, city string) (*weather.Data, error)
+}
+
+type EmailService interface {
+	SendConfirmationEmail(email, city, token string) error
+	SendWeatherUpdate(email, city string, weather *weather.Data, unsubscribeToken string) error
+}
+
+type SubscriptionService interface {
+	CreateSubscription(email, city, frequency string) (*models.Subscription, error)
+	ConfirmSubscription(token string) error
+	Unsubscribe(token string) error
+}
+
+type SubscriptionProcessor interface {
+	ProcessSubscription(ctx context.Context, email, city, frequency string) (*models.Subscription, error)
+}
+
+type WeatherValidator interface {
+	ValidateCity(ctx context.Context, city string) error
+}
 
 type Container struct {
 	config *config.Config
 	db     *gorm.DB
 
-	userRepo         interfaces.UserRepository
-	subscriptionRepo interfaces.SubscriptionRepository
+	userRepo         UserRepository
+	subscriptionRepo SubscriptionRepository
 
-	weatherService      interfaces.WeatherService
-	emailService        interfaces.EmailService
-	subscriptionService interfaces.SubscriptionService
+	weatherService      WeatherService
+	emailService        EmailService
+	subscriptionService SubscriptionService
 
-	weatherValidator         interfaces.WeatherValidator
-	subscriptionOrchestrator interfaces.SubscriptionOrchestrator
+	weatherValidator      WeatherValidator
+	subscriptionProcessor SubscriptionProcessor
 }
 
 func NewContainer(cfg *config.Config) (*Container, error) {
@@ -70,7 +109,7 @@ func (c *Container) initializeCoreServices() {
 func (c *Container) initializeCompositeServices() {
 	c.weatherValidator = services.NewWeatherValidator(c.weatherService)
 
-	c.subscriptionOrchestrator = services.NewSubscriptionOrchestrator(
+	c.subscriptionProcessor = services.NewSubscriptionProcessor(
 		c.weatherValidator,
 		c.subscriptionService,
 		c.emailService,
@@ -81,32 +120,32 @@ func (c *Container) GetDatabase() *gorm.DB {
 	return c.db
 }
 
-func (c *Container) GetUserRepository() interfaces.UserRepository {
+func (c *Container) GetUserRepository() UserRepository {
 	return c.userRepo
 }
 
-func (c *Container) GetSubscriptionRepository() interfaces.SubscriptionRepository {
+func (c *Container) GetSubscriptionRepository() SubscriptionRepository {
 	return c.subscriptionRepo
 }
 
-func (c *Container) GetWeatherService() interfaces.WeatherService {
+func (c *Container) GetWeatherService() WeatherService {
 	return c.weatherService
 }
 
-func (c *Container) GetEmailService() interfaces.EmailService {
+func (c *Container) GetEmailService() EmailService {
 	return c.emailService
 }
 
-func (c *Container) GetSubscriptionService() interfaces.SubscriptionService {
+func (c *Container) GetSubscriptionService() SubscriptionService {
 	return c.subscriptionService
 }
 
-func (c *Container) GetWeatherValidator() interfaces.WeatherValidator {
+func (c *Container) GetWeatherValidator() WeatherValidator {
 	return c.weatherValidator
 }
 
-func (c *Container) GetSubscriptionOrchestrator() interfaces.SubscriptionOrchestrator {
-	return c.subscriptionOrchestrator
+func (c *Container) GetSubscriptionOrchestrator() SubscriptionProcessor {
+	return c.subscriptionProcessor
 }
 
 func (c *Container) Close() error {

@@ -7,12 +7,22 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
+	"github.com/ihorlenko/weather_notifier/internal/models"
 )
 
+type SubscriptionProcessor interface {
+	ProcessSubscription(ctx context.Context, email, city, frequency string) (*models.Subscription, error)
+}
+
+type SubscriptionManager interface {
+	CreateSubscription(email, city, frequency string) (*models.Subscription, error)
+	ConfirmSubscription(token string) error
+	Unsubscribe(token string) error
+}
+
 type SubscriptionHandler struct {
-	orchestrator        interfaces.SubscriptionOrchestrator
-	subscriptionService interfaces.SubscriptionService
+	processor           SubscriptionProcessor
+	subscriptionService SubscriptionManager
 }
 
 type SubscribeRequest struct {
@@ -22,11 +32,11 @@ type SubscribeRequest struct {
 }
 
 func NewSubscriptionHandler(
-	orchestrator interfaces.SubscriptionOrchestrator,
-	subscriptionService interfaces.SubscriptionService,
+	processor SubscriptionProcessor,
+	subscriptionService SubscriptionManager,
 ) *SubscriptionHandler {
 	return &SubscriptionHandler{
-		orchestrator:        orchestrator,
+		processor:           processor,
 		subscriptionService: subscriptionService,
 	}
 }
@@ -52,7 +62,7 @@ func (h *SubscriptionHandler) Subscribe(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := h.orchestrator.ProcessSubscription(ctx, req.Email, req.City, req.Frequency)
+	_, err := h.processor.ProcessSubscription(ctx, req.Email, req.City, req.Frequency)
 	if err != nil {
 		h.handleSubscriptionError(c, err)
 		return
