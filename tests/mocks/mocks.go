@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -16,9 +15,7 @@ type MockWeatherService struct {
 	mock.Mock
 }
 
-var _ interfaces.WeatherService = (*MockWeatherService)(nil)
-
-func (m *MockWeatherService) GetWeather(ctx context.Context, city string) (*types.WeatherData, error) {
+func (m *MockWeatherService) GetWeather(ctx context.Context, city string) (*weather.Data, error) {
 	args := m.Called(ctx, city)
 
 	if err := args.Error(1); err != nil {
@@ -29,7 +26,7 @@ func (m *MockWeatherService) GetWeather(ctx context.Context, city string) (*type
 		return nil, ErrMockReturnedNil
 	}
 
-	weatherData, ok := args.Get(0).(*types.WeatherData)
+	weatherData, ok := args.Get(0).(*weather.Data)
 	if !ok {
 		return nil, fmt.Errorf("mock returned unexpected type")
 	}
@@ -41,15 +38,13 @@ type MockEmailService struct {
 	mock.Mock
 }
 
-var _ interfaces.EmailService = (*MockEmailService)(nil)
-
 func (m *MockEmailService) SendConfirmationEmail(email, city, token string) error {
 	args := m.Called(email, city, token)
 	return args.Error(0)
 }
 
 func (m *MockEmailService) SendWeatherUpdate(
-	email, city string, weather *types.WeatherData,
+	email, city string, weather *weather.Data,
 	unsubscribeToken string,
 ) error {
 	args := m.Called(email, city, weather, unsubscribeToken)
