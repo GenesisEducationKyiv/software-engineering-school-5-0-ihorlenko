@@ -10,18 +10,15 @@ import (
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
-	"github.com/ihorlenko/weather_notifier/internal/interfaces"
 	"github.com/ihorlenko/weather_notifier/internal/types"
 )
-
-var _ interfaces.WeatherService = (*WeatherService)(nil)
 
 type WeatherService struct {
 	baseURL string
 	apiKey  string
 }
 
-func NewWeatherService(cfg *config.Config) interfaces.WeatherService {
+func NewWeatherService(cfg *config.Config) *WeatherService {
 	return &WeatherService{
 		baseURL: "https://api.weatherapi.com/v1/",
 		apiKey:  cfg.WeatherAPIConfig.APIKey,
@@ -51,6 +48,25 @@ func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*types.W
 		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusBadRequest {
+		var errorResp struct {
+			Error struct {
+				Code    int    `json:"code"`
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&errorResp); err == nil {
+			if errorResp.Error.Code == 1006 {
+				log.Printf("Invalid city requested: %s", city)
+				return nil, apperrors.ErrInvalidCity
+			}
+		}
+
+		log.Printf("Weather API returned 400 for city %s: %v", city, errorResp.Error.Message)
+		return nil, apperrors.ErrInvalidCity
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Weather API returned non 200 status code: %d", resp.StatusCode)
