@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-
 	"net/http"
 	"strings"
 
