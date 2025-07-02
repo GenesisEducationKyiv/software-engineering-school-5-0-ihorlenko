@@ -1,0 +1,86 @@
+name: Nightly E2E Tests
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  e2e-tests-matrix:
+    name: E2E Tests (Multiple Browsers)
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+      fail-fast: false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: tests/e2e/package-lock.json
+
+    - name: Install dependencies
+      working-directory: tests/e2e
+      run: npm ci
+
+    - name: Install Playwright browsers
+      working-directory: tests/e2e
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Start application
+      run: |
+        make up
+        timeout 60 bash -c 'until curl -f http://localhost:8080/ping; do sleep 2; done'
+      env:
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+        EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+        EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+
+    - name: Run E2E tests on ${{ matrix.browser }}
+      working-directory: tests/e2e
+      run: npx playwright test --project=${{ matrix.browser }}
+      env:
+        BASE_URL: ${{ secrets.BASE_URL }}
+
+    - name: Upload test results for ${{ matrix.browser }}
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: nightly-e2e-results-${{ matrix.browser }}
+        path: |
+          tests/e2e/test-results/
+          tests/e2e/playwright-report/
+        retention-days: 7
+
+    - name: Stop application
+      if: always()
+      run: make down
+      env:
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
+  notify-failures:
+    name: Notify on Failures
+    runs-on: ubuntu-latest
+    needs: e2e-tests-matrix
+    if: failure()
+    
+    steps:
+    - name: Send notification
+      run: |
+        echo "Nightly E2E tests failed! Check the workflow results."
