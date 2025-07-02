@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 )
 
 type WeatherRetriever interface {
-	GetWeather(ctx context.Context, city string) (*types.WeatherData, error)
+	GetWeather(ctx context.Context, city string) (*weather.Data, error)
 }
 
 type WeatherHandler struct {

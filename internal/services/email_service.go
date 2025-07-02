@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 )
 
 type EmailService struct {
@@ -112,7 +112,7 @@ func (s *EmailService) SendConfirmationEmail(email, city, token string) error {
 func (s *EmailService) SendWeatherUpdate(
 	email,
 	city string,
-	weather *types.WeatherData,
+	weather *weather.Data,
 	unsubscribeToken string,
 ) error {
 	subject := fmt.Sprintf("Weather Update for %s", city)

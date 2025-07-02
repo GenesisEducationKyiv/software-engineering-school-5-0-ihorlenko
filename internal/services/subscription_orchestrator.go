@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ihorlenko/weather_notifier/internal/models"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 )
 
 type CityValidator interface {
@@ -14,7 +14,7 @@ type CityValidator interface {
 
 type EmailSender interface {
 	SendConfirmationEmail(email, city, token string) error
-	SendWeatherUpdate(email, city string, weather *types.WeatherData, unsubscribeToken string) error
+	SendWeatherUpdate(email, city string, weather *weather.Data, unsubscribeToken string) error
 }
 
 type SubscriptionProcessor interface {

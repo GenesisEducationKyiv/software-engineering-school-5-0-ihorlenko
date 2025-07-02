@@ -10,7 +10,7 @@ import (
 
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 )
 
 type WeatherService struct {
@@ -25,7 +25,7 @@ func NewWeatherService(cfg *config.Config) *WeatherService {
 	}
 }
 
-func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*types.WeatherData, error) {
+func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*weather.Data, error) {
 	baseURL, err := url.Parse(ws.baseURL + "current.json")
 	if err != nil {
 		return nil, fmt.Errorf("invalid base URL: %w", err)
@@ -73,13 +73,13 @@ func (ws *WeatherService) GetWeather(ctx context.Context, city string) (*types.W
 		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 
-	var apiResp types.WeatherAPIResponse
+	var apiResp weather.APIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
 		log.Printf("Failed to decode weather API response: %v", err)
 		return nil, apperrors.ErrWeatherServiceUnavailable
 	}
 
-	return &types.WeatherData{
+	return &weather.Data{
 		City:        apiResp.Location.Name,
 		Temperature: apiResp.Current.TempC,
 		Humidity:    apiResp.Current.Humidity,

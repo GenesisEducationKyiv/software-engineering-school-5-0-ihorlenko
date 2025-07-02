@@ -9,7 +9,7 @@ import (
 	"github.com/ihorlenko/weather_notifier/internal/models"
 	"github.com/ihorlenko/weather_notifier/internal/repositories"
 	"github.com/ihorlenko/weather_notifier/internal/services"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 	"gorm.io/gorm"
 )
 
@@ -28,12 +28,12 @@ type SubscriptionRepository interface {
 }
 
 type WeatherService interface {
-	GetWeather(ctx context.Context, city string) (*types.WeatherData, error)
+	GetWeather(ctx context.Context, city string) (*weather.Data, error)
 }
 
 type EmailService interface {
 	SendConfirmationEmail(email, city, token string) error
-	SendWeatherUpdate(email, city string, weather *types.WeatherData, unsubscribeToken string) error
+	SendWeatherUpdate(email, city string, weather *weather.Data, unsubscribeToken string) error
 }
 
 type SubscriptionService interface {

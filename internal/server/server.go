@@ -9,7 +9,7 @@ import (
 	"github.com/ihorlenko/weather_notifier/internal/api/handlers"
 	"github.com/ihorlenko/weather_notifier/internal/config"
 	"github.com/ihorlenko/weather_notifier/internal/models"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -19,7 +19,7 @@ type Processor interface {
 }
 
 type WeatherRetriever interface {
-	GetWeather(ctx context.Context, city string) (*types.WeatherData, error)
+	GetWeather(ctx context.Context, city string) (*weather.Data, error)
 }
 
 type SubscriptionManager interface {
@@ -30,7 +30,7 @@ type SubscriptionManager interface {
 
 type EmailSender interface {
 	SendConfirmationEmail(email, city, token string) error
-	SendWeatherUpdate(email, city string, weather *types.WeatherData, unsubscribeToken string) error
+	SendWeatherUpdate(email, city string, weather *weather.Data, unsubscribeToken string) error
 }
 
 type Server struct {

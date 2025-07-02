@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ihorlenko/weather_notifier/internal/models"
-	"github.com/ihorlenko/weather_notifier/internal/types"
+	"github.com/ihorlenko/weather_notifier/internal/weather"
 	"github.com/robfig/cron/v3"
 )
 
@@ -19,12 +19,12 @@ type SubscriptionRepositoryManager interface {
 }
 
 type WeatherRetriever interface {
-	GetWeather(ctx context.Context, city string) (*types.WeatherData, error)
+	GetWeather(ctx context.Context, city string) (*weather.Data, error)
 }
 
 type EmailSender interface {
 	SendConfirmationEmail(email, city, token string) error
-	SendWeatherUpdate(email, city string, weather *types.WeatherData, unsubscribeToken string) error
+	SendWeatherUpdate(email, city string, weather *weather.Data, unsubscribeToken string) error
 }
 
 type WeatherScheduler struct {
