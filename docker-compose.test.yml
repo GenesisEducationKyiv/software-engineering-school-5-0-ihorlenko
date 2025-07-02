@@ -1,0 +1,81 @@
+services:
+  unit-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+      target: unit-tests
+    environment:
+      - CGO_ENABLED=1
+      - GOOS=linux
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: go test -v -race -coverprofile=coverage-unit.out ./internal/...
+
+  integration-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+      target: integration-tests
+    environment:
+      - CGO_ENABLED=1
+      - GOOS=linux
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: go test -v -race -coverprofile=coverage-integration.out ./tests/integration/...
+    depends_on:
+      - test-postgres
+
+  e2e-tests:
+    build:
+      context: ./tests/e2e
+      dockerfile: Dockerfile
+    environment:
+      - BASE_URL=http://test-app:8080
+      - CI=true
+    volumes:
+      - ./tests/e2e/test-results:/app/test-results
+    depends_on:
+      test-app:
+        condition: service_started
+    command: npm test
+
+  test-app:
+    build: .
+    environment:
+      - POSTGRES_HOST=test-postgres
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+      - POSTGRES_DB=test_weather_api
+      - WEATHER_API_KEY=test_api_key
+      - EMAIL_FROM=test@example.com
+      - EMAIL_PASSWORD=test_password
+      - EMAIL_SMTP_HOST=localhost
+      - EMAIL_SMTP_PORT=587
+      - BASE_URL=http://test-app:8080
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+    ports:
+      - "8080"
+
+  test-postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+      - POSTGRES_DB=test_weather_api
+    ports:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_weather_api"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    tmpfs:
+      - /var/lib/postgresql/data
+
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,21 @@
+package weather
+
+type Data struct {
+	City        string  `json:"city" validate:"required,min=1,max=200"`
+	Temperature float64 `json:"temperature"`
+	Humidity    float64 `json:"humidity"`
+	Description string  `json:"description"`
+}
+
+type APIResponse struct {
+	Location struct {
+		Name string `json:"name"`
+	} `json:"location"`
+	Current struct {
+		TempC     float64 `json:"temp_c"`
+		Humidity  float64 `json:"humidity"`
+		Condition struct {
+			Text string `json:"text"`
+		} `json:"condition"`
+	} `json:"current"`
+}

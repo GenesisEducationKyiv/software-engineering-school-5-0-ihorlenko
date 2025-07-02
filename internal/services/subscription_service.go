@@ -8,17 +8,30 @@ import (
 
 	apperrors "github.com/ihorlenko/weather_notifier/internal/errors"
 	"github.com/ihorlenko/weather_notifier/internal/models"
-	"github.com/ihorlenko/weather_notifier/internal/repositories"
 )
 
+type UserRepositoryManager interface {
+	GetByEmail(email string) (*models.User, error)
+	Create(email string) (*models.User, error)
+	GetOrCreate(email string) (*models.User, error)
+}
+
+type SubscriptionRepositoryManager interface {
+	Create(sub *models.Subscription) error
+	GetByConfirmationToken(token string) (*models.Subscription, error)
+	GetByUnsubscribeToken(token string) (*models.Subscription, error)
+	UpdateStatus(id uint, status string) error
+	GetActiveSubscriptionsByFrequency(frequency string) ([]models.Subscription, error)
+}
+
 type SubscriptionService struct {
-	userRepo         *repositories.UserRepository
-	subscriptionRepo *repositories.SubscriptionRepository
+	userRepo         UserRepositoryManager
+	subscriptionRepo SubscriptionRepositoryManager
 }
 
 func NewSubscriptionService(
-	userRepo *repositories.UserRepository,
-	subscriptionRepo *repositories.SubscriptionRepository,
+	userRepo UserRepositoryManager,
+	subscriptionRepo SubscriptionRepositoryManager,
 ) *SubscriptionService {
 	return &SubscriptionService{
 		userRepo:         userRepo,
