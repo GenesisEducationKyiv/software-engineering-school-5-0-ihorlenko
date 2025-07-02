@@ -25,7 +25,7 @@ func TestSubscriptionOrchestrator_ProcessSubscription_Success(t *testing.T) {
 	mockSubscriptionService := &MockSubscriptionService{}
 	mockEmailService := mocks.NewMockEmailService()
 
-	orchestrator := NewSubscriptionOrchestrator(
+	orchestrator := NewSubscriptionProcessor(
 		mockValidator,
 		mockSubscriptionService,
 		mockEmailService,
@@ -64,7 +64,7 @@ func TestSubscriptionOrchestrator_ProcessSubscription_CityValidationFails(t *tes
 	mockSubscriptionService := &MockSubscriptionService{}
 	mockEmailService := mocks.NewMockEmailService()
 
-	orchestrator := NewSubscriptionOrchestrator(
+	orchestrator := NewSubscriptionProcessor(
 		mockValidator,
 		mockSubscriptionService,
 		mockEmailService,
@@ -94,7 +94,7 @@ func TestSubscriptionOrchestrator_ProcessSubscription_SubscriptionCreationFails(
 	mockSubscriptionService := &MockSubscriptionService{}
 	mockEmailService := mocks.NewMockEmailService()
 
-	orchestrator := NewSubscriptionOrchestrator(
+	orchestrator := NewSubscriptionProcessor(
 		mockValidator,
 		mockSubscriptionService,
 		mockEmailService,
@@ -125,7 +125,7 @@ func TestSubscriptionOrchestrator_ProcessSubscription_EmailSendingFails(t *testi
 	mockSubscriptionService := &MockSubscriptionService{}
 	mockEmailService := mocks.NewMockEmailService()
 
-	orchestrator := NewSubscriptionOrchestrator(
+	orchestrator := NewSubscriptionProcessor(
 		mockValidator,
 		mockSubscriptionService,
 		mockEmailService,
